@@ -1,6 +1,6 @@
-import { IPAddr, IPRange }      from 'https://addr.tools/js/ipaddr'
-import { Client as RDAPClient } from 'https://addr.tools/js/rdap'
-import { encode, fetchOk }      from 'https://addr.tools/js/util'
+import { IPAddr, IPRange }      from './js/ipaddr'
+import { Client as RDAPClient } from './js/rdap'
+import { encode, fetchOk }      from './js/util'
 
 // state
 const clientId       = Math.floor(Math.random() * 0xffffffff).toString(16)
@@ -93,8 +93,19 @@ const knownRanges = fetchOk('/known-ipranges.json')
   .then(objs => objs.flatMap(({ desc, ranges }) => ranges.map(cidr => ({ desc, range: new IPRange(cidr) }))))
   .catch(() => [])
 
+// custom display names for known self-hosted resolvers (IP -> friendly label)
+const customResolverNames = {
+  '76.167.43.43': 'sendns.local (Unbound/AdGuard)',
+}
+
 // returns promise of RDAP registrant name or other identifier for given IPAddr or IPRange
 const getReg = async ipOrRange => {
+  if (ipOrRange instanceof IPAddr) {
+    const custom = customResolverNames[ipOrRange.toString()]
+    if (custom) {
+      return custom
+    }
+  }
   const known = (await knownRanges).find(({ range }) => range.contains(ipOrRange))
   if (known && !known.desc.includes('{}')) {
     return known.desc
@@ -292,8 +303,8 @@ const drawDNSSEC = (() => {
           if (!got) {
             error = true
             for (let j = i + 3; j < cols.length; j += 3) {
-              cols[j].className = 'yellow'
-              cols[j].innerHTML = 'ERR'
+              cols[j].className = 'light'
+              cols[j].innerHTML = 'SKIP'
             }
           }
           return
@@ -306,7 +317,7 @@ const drawDNSSEC = (() => {
       })
       if (error) {
         // a dnssec-valid domain failed to connect
-        dnssecStatusSpan.innerHTML = makeStatus('An error occurred', 'yellow')
+        dnssecStatusSpan.innerHTML = makeStatus('Some valid signatures failed to resolve (follow-up tests skipped)', 'yellow')
         return
       }
       if (fail) {
@@ -439,11 +450,16 @@ const testDNS = () => new Promise(done => {
     drawDNSSEC()
     for (const [ algIndex, alg ] of [ 'alg13', 'alg14', 'alg15' ].entries()) {
       const fqdn = `${clientId}.test-${alg}.dnscheck.tools`
-      const { connected, ech } = await makeQuery(fqdn, 10000, abortController.signal)
+      let connected, ech
+      ;({ connected, ech } = await makeQuery(fqdn, 10000, abortController.signal) || {})
+      if (!connected) {
+        // valid signature may have failed due to a transient (cold cache, restart); retry once
+        ;({ connected, ech } = await makeQuery(fqdn, 20000, abortController.signal) || {})
+      }
       dnssecTests[algIndex] = connected
       drawDNSSEC()
       if (!connected) {
-        // valid signature failed to connect, no point in continuing tests for this signing algorithm
+        // valid signature still failed to connect, no point in continuing tests for this signing algorithm
         continue
       }
       console.log(`ECH: ${fqdn} ${ech}`)
