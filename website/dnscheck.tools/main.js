@@ -427,7 +427,7 @@ const testIPs = async () => {
 // detects DNS resolvers and DNSSEC validation
 const testDNS = () => new Promise(done => {
   // listen for DNS requests via WebSocket
-  const socket = new WebSocket(`wss://ws.dnscheck.tools/watch/${clientId}`)
+  const socket = new WebSocket(`wss://ws.dnscheck.ericsender.com/watch/${clientId}`)
 
   // abort all requests on close
   const abortController = new AbortController()
@@ -437,11 +437,11 @@ const testDNS = () => new Promise(done => {
     console.log('WebSocket opened')
     // generate some DNS requests
     for (let i = 0; i < 4; i++) {
-      await makeQuery(`${String.fromCharCode(97 + i)}.${clientId}-nullip.test.dnscheck.tools`, 10000, abortController.signal)
+      await makeQuery(`${String.fromCharCode(97 + i)}.${clientId}-nullip.test.dnscheck.ericsender.com`, 10000, abortController.signal)
     }
     // test IPv6 support
     if (!seenIPv6) {
-      await makeQuery(`${clientId}-nullip.test-ipv6.dnscheck.tools`, 10000, abortController.signal)
+      await makeQuery(`${clientId}-nullip.test-ipv6.dnscheck.ericsender.com`, 10000, abortController.signal)
     }
     if (!seenIPv6) {
       ipv6StatusSpan.innerHTML = '<span class="red" title="Your DNS resolvers cannot reach nameservers over IPv6">IPv6</span>'
@@ -449,7 +449,7 @@ const testDNS = () => new Promise(done => {
     // test DNSSEC validation, ECH
     drawDNSSEC()
     for (const [ algIndex, alg ] of [ 'alg13', 'alg14', 'alg15' ].entries()) {
-      const fqdn = `${clientId}.test-${alg}.dnscheck.tools`
+      const fqdn = `${clientId}.test-${alg}.dnscheck.ericsender.com`
       let connected, ech
       ;({ connected, ech } = await makeQuery(fqdn, 10000, abortController.signal) || {})
       if (!connected) {
@@ -465,7 +465,7 @@ const testDNS = () => new Promise(done => {
       console.log(`ECH: ${fqdn} ${ech}`)
       echTests.push(ech)
       await Promise.all([ 'badsig', 'expiredsig', 'nosig' ].map((sigOpt, sigIndex) =>
-        makeQuery(`${clientId}-${sigOpt}.test-${alg}.dnscheck.tools`, 30000, abortController.signal)
+        makeQuery(`${clientId}-${sigOpt}.test-${alg}.dnscheck.ericsender.com`, 30000, abortController.signal)
           .then(({ connected }) => {
             dnssecTests[3 + 3 * sigIndex + algIndex] = connected
             drawDNSSEC()

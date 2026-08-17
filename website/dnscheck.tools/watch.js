@@ -63,8 +63,8 @@ const handleOpen = () => {
   // set content
   if (count === 0) {
     requestsDiv.innerHTML = '<p>listening for requests...' +
-      `<p>try \`<span ondblclick="window.getSelection().selectAllChildren(this)">dig txt ${clientId}.test.dnscheck.tools</span>\`` +
-      `<p>or <a href="https://${clientId}.test.dnscheck.tools/" onclick="fetch(this.href).catch(() => {});return false">click here</a>.`
+      `<p>try \`<span ondblclick="window.getSelection().selectAllChildren(this)">dig txt ${clientId}.test.dnscheck.ericsender.com</span>\`` +
+      `<p>or <a href="https://${clientId}.test.dnscheck.ericsender.com/" onclick="fetch(this.href).catch(() => {});return false">click here</a>.`
   }
 }
 
@@ -149,7 +149,7 @@ const handleClose = e => {
 
 // opens and sets listeners on WebSocket connection to recieve DNS requests
 window.openSocket = () => {
-  const socket = new WebSocket(`wss://ws.dnscheck.tools/watch/${clientId}`, 'full')
+  const socket = new WebSocket(`wss://ws.dnscheck.ericsender.com/watch/${clientId}`, 'full')
   socket.addEventListener('open', handleOpen)
   socket.addEventListener('message', handleMessage)
   socket.addEventListener('close', handleClose)
