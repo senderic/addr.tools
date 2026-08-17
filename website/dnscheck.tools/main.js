@@ -1,6 +1,6 @@
-import { IPAddr, IPRange }      from './js/ipaddr'
-import { Client as RDAPClient } from './js/rdap'
-import { encode, fetchOk }      from './js/util'
+import { IPAddr, IPRange }      from './js/ipaddr.js'
+import { Client as RDAPClient } from './js/rdap.js'
+import { encode, fetchOk }      from './js/util.js'
 
 // state
 const clientId       = Math.floor(Math.random() * 0xffffffff).toString(16)

@@ -1,5 +1,5 @@
-import { IPAddr, IPRange } from './ipaddr'
-import { Mutex, fetchOk } from './util'
+import { IPAddr, IPRange } from './ipaddr.js'
+import { Mutex, fetchOk } from './util.js'
 export class RDAPServiceNotFoundError extends Error {
   constructor(query) {
     super(`No RDAP service found for ${query}`)
